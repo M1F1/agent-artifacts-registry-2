@@ -1,0 +1,21 @@
+{
+  "description": "GitHub Enterprise repository, issue, pull request, and code access through the official Docker MCP server.",
+  "name": "github-enterprise",
+  "server": {
+    "args": [
+      "run",
+      "-i",
+      "--rm",
+      "-e",
+      "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "-e",
+      "GITHUB_HOST",
+      "ghcr.io/github/github-mcp-server@sha256:881b53d6f75f69bdbc1b5b10fc2f1361717c19054143b3a8529fb5c32061a50e"
+    ],
+    "command": "docker",
+    "env": {
+      "GITHUB_HOST": "https://github.dev.global.company.org",
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN}"
+    }
+  }
+}

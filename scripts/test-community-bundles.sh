@@ -56,14 +56,33 @@ mcp_starters = {
     "github-docker": {
         "server_name": "github",
         "environment": "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "profiles": {"claude", "opencode", "tabnine"},
+        "server_env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        },
         "image": "ghcr.io/github/github-mcp-server@sha256:881b53d6f75f69bdbc1b5b10fc2f1361717c19054143b3a8529fb5c32061a50e",
         "service": "aart/mcp/github-docker",
+        "origin_url": "https://github.com/github/github-mcp-server.git",
+        "origin_commit": "cdfa34e0a9d3e1ae6825345471f25185dd61d74e",
+    },
+    "github-enterprise-docker": {
+        "server_name": "github-enterprise",
+        "environment": "GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN",
+        "profiles": {"claude", "tabnine"},
+        "server_env": {
+            "GITHUB_HOST": "https://github.dev.global.company.org",
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN}",
+        },
+        "image": "ghcr.io/github/github-mcp-server@sha256:881b53d6f75f69bdbc1b5b10fc2f1361717c19054143b3a8529fb5c32061a50e",
+        "service": "aart/mcp/github-enterprise-docker",
         "origin_url": "https://github.com/github/github-mcp-server.git",
         "origin_commit": "cdfa34e0a9d3e1ae6825345471f25185dd61d74e",
     },
     "postgres-docker": {
         "server_name": "postgres",
         "environment": "DATABASE_URI",
+        "profiles": {"claude", "opencode", "tabnine"},
+        "server_env": {"DATABASE_URI": "${DATABASE_URI}"},
         "image": "crystaldba/postgres-mcp@sha256:dbbd346860d29f1543e991f30f3284bf4ab5f096d049ecc3426528f20b1b6e6b",
         "service": "aart/mcp/postgres-docker",
         "origin_url": "https://github.com/crystaldba/postgres-mcp.git",
@@ -89,7 +108,7 @@ if set(power_pack["collections"]) != {"superpowers", "matt-planning"}:
 if {
     (item["type"], item["name"]) for item in mcp_collection["artifacts"]
 } != {("mcp", name) for name in mcp_starters}:
-    raise SystemExit("docker-mcp-starters must contain both reviewed MCP examples")
+    raise SystemExit("docker-mcp-starters must contain all reviewed MCP examples")
 
 for name in expected:
     artifact_root = root / "artifacts" / "skill" / name
@@ -139,7 +158,7 @@ for name, expected_mcp in mcp_starters.items():
         raise SystemExit(f"mcp/{name} must not gain an incidental requires_aart bound")
     if set(manifest["compatibility"]["platforms"]) != {"darwin", "linux"}:
         raise SystemExit(f"mcp/{name} has an unexpected platform contract")
-    if set(manifest["compatibility"]["profiles"]) != {"claude", "opencode", "tabnine"}:
+    if set(manifest["compatibility"]["profiles"]) != expected_mcp["profiles"]:
         raise SystemExit(f"mcp/{name} has an unexpected profile contract")
     if set(manifest["install"]["modes"]) != {"copy", "symlink"}:
         raise SystemExit(f"mcp/{name} must accept Copy and Symlink installation requests")
@@ -157,13 +176,11 @@ for name, expected_mcp in mcp_starters.items():
     server = payload["server"]
     if payload["name"] != expected_mcp["server_name"] or server["command"] != "docker":
         raise SystemExit(f"mcp/{name} has an unexpected installed server identity")
-    if server["args"][-1] != expected_mcp["image"] and name == "github-docker":
-        raise SystemExit("GitHub MCP must run the reviewed digest-pinned image")
     if expected_mcp["image"] not in server["args"]:
         raise SystemExit(f"mcp/{name} must run the reviewed digest-pinned image")
     environment_name = expected_mcp["environment"]
-    if server["env"] != {environment_name: "${" + environment_name + "}"}:
-        raise SystemExit(f"mcp/{name} payload must contain only an environment lookup")
+    if server["env"] != expected_mcp["server_env"]:
+        raise SystemExit(f"mcp/{name} payload has unexpected environment bindings")
     if name == "postgres-docker" and "--access-mode=restricted" not in server["args"]:
         raise SystemExit("Postgres MCP must default to restricted access mode")
 
@@ -285,7 +302,7 @@ fake_setup = FakeSetupProcess()
 wizard_home = test_root / "wizard-home"
 wizard_home.mkdir()
 wizard_results = []
-for name in ("github-docker", "postgres-docker"):
+for name in ("github-docker", "github-enterprise-docker", "postgres-docker"):
     artifact_root = registry / "artifacts" / "mcp" / name
     parsed = parse_installer(
         (artifact_root / "setup" / "installer.json").read_bytes(),
@@ -328,6 +345,8 @@ if canary in observable:
 for expected in (
     "aart/mcp/github-docker",
     "GITHUB_PERSONAL_ACCESS_TOKEN",
+    "aart/mcp/github-enterprise-docker",
+    "GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN",
     "aart/mcp/postgres-docker",
     "DATABASE_URI",
 ):
@@ -403,15 +422,46 @@ for mode in ("copy", "symlink"):
     ):
         raise SystemExit("every MCP/profile install must queue its own setup review")
 
-    targets = (
-        (project / ".mcp.json", "mcpServers"),
-        (project / "opencode.json", "mcp"),
-        (project / ".tabnine" / "agent" / "settings.json", "mcpServers"),
+    enterprise_coordinates = tuple(
+        item.coordinate
+        for item in service.value.context.catalog.items
+        if item.coordinate.artifact.kind == "mcp"
+        and item.coordinate.artifact.name == "github-enterprise-docker"
     )
-    for target, key in targets:
+    enterprise_reviewed = service.value.prepare(
+        ConsumerActionRequest(
+            "install",
+            enterprise_coordinates,
+            ("claude", "tabnine"),
+            scope="project",
+            mode=mode,
+        )
+    )
+    if not isinstance(enterprise_reviewed, Ok):
+        raise SystemExit(enterprise_reviewed)
+    enterprise_installed = service.value.finalize(
+        enterprise_reviewed.value, enterprise_reviewed.value.review_digest
+    )
+    if not isinstance(enterprise_installed, Ok) or enterprise_installed.value.session_status != "succeeded":
+        raise SystemExit(enterprise_installed)
+    if len(enterprise_installed.value.items) != 2 or any(
+        item.setup_status != "pending" for item in enterprise_installed.value.items
+    ):
+        raise SystemExit("enterprise MCP must queue Claude and Tabnine setup reviews")
+
+    targets = (
+        (project / ".mcp.json", "mcpServers", {"github", "github-enterprise", "postgres"}),
+        (project / "opencode.json", "mcp", {"github", "postgres"}),
+        (
+            project / ".tabnine" / "agent" / "settings.json",
+            "mcpServers",
+            {"github", "github-enterprise", "postgres"},
+        ),
+    )
+    for target, key, expected_servers in targets:
         document = json.loads(target.read_text(encoding="utf-8"))
         servers = document[key]
-        if set(servers) != {"github", "postgres"}:
+        if set(servers) != expected_servers:
             raise SystemExit(f"unexpected MCP merge at {target}: {document!r}")
         if servers["github"]["env"] != {
             "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
@@ -419,6 +469,11 @@ for mode in ("copy", "symlink"):
             raise SystemExit("GitHub credential lookup changed during harness merge")
         if servers["postgres"]["env"] != {"DATABASE_URI": "${DATABASE_URI}"}:
             raise SystemExit("Postgres credential lookup changed during harness merge")
+        if "github-enterprise" in expected_servers and servers["github-enterprise"]["env"] != {
+            "GITHUB_HOST": "https://github.dev.global.company.org",
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN}",
+        }:
+            raise SystemExit("GitHub Enterprise host or credential lookup changed during merge")
 
 setup_review = run(
     marketplace.run,
@@ -426,7 +481,7 @@ setup_review = run(
         command="marketplace",
         marketplace_action="setup",
         names=("community/collection/docker-mcp-starters",),
-        profiles=("claude", "opencode", "tabnine"),
+        profiles=("claude", "tabnine"),
         project=str(test_root / "copy"),
         scope="project",
         user_home=str(user_home),
@@ -434,8 +489,25 @@ setup_review = run(
         json=True,
     ),
 )
-planned_setup = setup_review.get("setup", {}).get("planned", [])
-if len(planned_setup) != 6:
+opencode_setup_review = run(
+    marketplace.run,
+    Request(
+        command="marketplace",
+        marketplace_action="setup",
+        names=("community/mcp/github-docker", "community/mcp/postgres-docker"),
+        profiles=("opencode",),
+        project=str(test_root / "copy"),
+        scope="project",
+        user_home=str(user_home),
+        authorize_untrusted_source=True,
+        json=True,
+    ),
+)
+planned_setup = [
+    *setup_review.get("setup", {}).get("planned", []),
+    *opencode_setup_review.get("setup", {}).get("planned", []),
+]
+if len(planned_setup) != 8:
     raise SystemExit(f"expected one reviewed setup per MCP/profile: {setup_review!r}")
 if any(len(item["effects"]) != 4 for item in planned_setup):
     raise SystemExit("each MCP setup must review pull, Keychain, shell, and restart effects")
@@ -472,7 +544,7 @@ mcp_health = run(
         json=True,
     ),
 )
-if mcp_health.get("summary", {}).get("satisfied") != 2:
+if mcp_health.get("summary", {}).get("satisfied") != 3:
     raise SystemExit(f"Docker MCP runtime health is not satisfied: {mcp_health!r}")
 PY
 

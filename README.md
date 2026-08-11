@@ -8,7 +8,8 @@ Public AART registry containing reviewed skill imports and Docker-based MCP star
   [`mattpocock/skills` v1.2.3](https://github.com/mattpocock/skills/tree/v1.2.3), pinned to commit
   `6acc160e4e0cd062dbbbd7a1b26ae92855edf07e`;
 - GitHub's official MCP server `v1.9.0`, using the multi-platform image index pinned to
-  `sha256:881b53d6f75f69bdbc1b5b10fc2f1361717c19054143b3a8529fb5c32061a50e`;
+  `sha256:881b53d6f75f69bdbc1b5b10fc2f1361717c19054143b3a8529fb5c32061a50e`,
+  published as separate public GitHub and company GitHub Enterprise starters;
 - Postgres MCP Pro `v0.3.0`, using its multi-platform image index pinned to
   `sha256:dbbd346860d29f1543e991f30f3284bf4ab5f096d049ecc3426528f20b1b6e6b`.
 
@@ -18,8 +19,8 @@ Every artifact is independently installable. The registry also publishes four co
 - `matt-planning` — Wayfinder and Grill with Docs together with `domain-modeling`, `grilling`,
   `prototype`, `research`, and `setup-matt-pocock-skills`;
 - `agent-power-pack` — both skill collections, deduplicated into 21 skills;
-- `docker-mcp-starters` — the GitHub and restricted PostgreSQL MCP definitions, each with its own
-  setup wizard.
+- `docker-mcp-starters` — public GitHub, company GitHub Enterprise, and restricted PostgreSQL MCP
+  definitions, each with its own setup wizard.
 
 The Superpowers collection contains the skill payloads, including their in-tree scripts and
 references. It does not claim to reproduce the upstream plugin bootstrap, hooks, or executable
@@ -28,9 +29,12 @@ the skills and their consuming harnesses own runtime behavior.
 
 ## Docker MCP starters and credential wizards
 
-`mcp/github-docker` and `mcp/postgres-docker` merge only their secret-free server definitions into
-Claude Code, OpenCode, or Tabnine configuration. Both payloads use an immutable image digest; the
-GitHub starter targets `github.com`, while the PostgreSQL starter opts into restricted access mode.
+`mcp/github-docker`, `mcp/github-enterprise-docker`, and `mcp/postgres-docker` merge only their
+secret-free server definitions into supported harness configuration. All payloads use an immutable
+image digest. The public GitHub starter targets `github.com`; the enterprise starter targets
+`https://github.dev.global.company.org` under a non-conflicting `github-enterprise` server key; the
+PostgreSQL starter opts into restricted access mode. The enterprise starter supports Claude Code
+and Tabnine without requiring changes to AART.
 
 Each artifact owns a separate `setup/installer.json` and `setup/SETUP.md`. In the human TUI, setup
 shows the credential/help links, exact image pull, Keychain item, managed shell block, and restart
@@ -64,7 +68,7 @@ Node.js for `brainstorming`, Bash and Git for `subagent-driven-development`, Bas
 at `.agent-artifacts/runtime-environment.json` is evaluated in CI with `aart marketplace health`.
 These observations remain informational and never block installation.
 
-Both MCP starters similarly advertise Docker as an advisory runtime requirement. A missing Docker
+All three MCP starters similarly advertise Docker as an advisory runtime requirement. A missing Docker
 runtime appears in marketplace health and setup preflight; it does not hide the artifact or block
 installation of its JSON payload.
 
@@ -84,7 +88,7 @@ output. Reporting failures never affect installation.
 CI uses AART itself to run format, strict/frozen validate, lock, build, audit, and minimum/latest
 compatibility gates. It then installs `agent-power-pack` into clean Copy and managed Symlink layouts
 and verifies all 21 skills, provenance, license, compatibility, executable modes, and advisory
-runtime health. It also installs both MCP definitions in Copy and Symlink requests, checks the
-resulting harness JSON, reviews both setup queues, and executes both declarative wizards against
+runtime health. It also installs all three MCP definitions in Copy and Symlink requests, checks the
+resulting harness JSON, reviews every setup queue, and executes all declarative wizards against
 fake Docker and Keychain adapters with a synthetic secret-leak canary. CI never uses a real token,
 database URI, Keychain item, or image pull.

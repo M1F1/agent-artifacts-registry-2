@@ -30,6 +30,12 @@ The artifacts do not declare `requires_aart`: none of their payloads depends on 
 capability. The registry remains readable from AART `1.0.0`; CI deliberately compiles and tests it
 with released AART `1.3.0` without raising that minimum.
 
+Four artifacts with bundled executable helpers publish advisory runtime requirements: Bash and
+Node.js for `brainstorming`, Bash and Git for `subagent-driven-development`, Bash and npm for
+`systematic-debugging`, and Node.js plus Graphviz `dot` for `writing-skills`. The example inventory
+at `.agent-artifacts/runtime-environment.json` is evaluated in CI with `aart marketplace health`.
+These observations remain informational and never block installation.
+
 ## Usage analytics
 
 This registry advertises its own `M1F1/agent-artifacts-registry-2` GitHub Issues endpoint. AART
@@ -45,4 +51,5 @@ output. Reporting failures never affect installation.
 
 CI uses AART itself to run format, strict/frozen validate, lock, build, audit, and minimum/latest
 compatibility gates. It then installs `agent-power-pack` into clean Copy and managed Symlink layouts
-and verifies all 21 skills, provenance, license, compatibility, and executable modes.
+and verifies all 21 skills, provenance, license, compatibility, executable modes, and advisory
+runtime health.

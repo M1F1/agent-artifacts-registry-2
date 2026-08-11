@@ -45,6 +45,13 @@ matt = {
     "wayfinder",
 }
 expected = superpowers | matt
+runtime_extension = "com.m1f1.runtime-requirements"
+expected_runtime_requirements = {
+    "brainstorming": {"command.bash", "command.node"},
+    "subagent-driven-development": {"command.bash", "command.git"},
+    "systematic-debugging": {"command.bash", "command.npm"},
+    "writing-skills": {"command.dot", "command.node"},
+}
 
 
 def collection(name):
@@ -68,6 +75,15 @@ for name in expected:
         raise SystemExit(f"skill/{name} must remain at the reviewed MIT 1.0.0 import")
     if "requires_aart" in manifest:
         raise SystemExit(f"skill/{name} must not gain an incidental requires_aart bound")
+    declared = manifest.get(runtime_extension)
+    expected_runtime = expected_runtime_requirements.get(name)
+    if expected_runtime is None and declared is not None:
+        raise SystemExit(f"skill/{name} claims an unreviewed runtime requirement")
+    if expected_runtime is not None and (
+        declared is None
+        or {item["id"] for item in declared["requirements"]} != expected_runtime
+    ):
+        raise SystemExit(f"skill/{name} has unexpected advisory runtime requirements")
     if set(manifest["compatibility"]["platforms"]) != {"darwin", "linux"}:
         raise SystemExit(f"skill/{name} has an unexpected platform contract")
     if set(manifest["compatibility"]["profiles"]) != {
@@ -165,6 +181,26 @@ for mode in ("copy", "symlink"):
     )
     if len(result.get("items", [])) != 21:
         raise SystemExit(f"unexpected collection install result: {result!r}")
+
+health = run(
+    marketplace.run,
+    Request(
+        command="marketplace",
+        marketplace_action="health",
+        names=("community/collection/agent-power-pack",),
+        runtime_environment=str(registry / ".agent-artifacts" / "runtime-environment.json"),
+        project=str(test_root / "copy"),
+        user_home=str(user_home),
+        json=True,
+    ),
+)
+if health.get("advisory") is not True or health.get("installation_blocking") is not False:
+    raise SystemExit("runtime health must remain advisory and installation-nonblocking")
+summary = health.get("summary", {})
+if summary.get("satisfied") != 4 or summary.get("not-declared") != 17:
+    raise SystemExit(f"unexpected runtime health summary: {summary!r}")
+if any(summary.get(status) != 0 for status in ("unsatisfied", "unknown", "unavailable", "invalid")):
+    raise SystemExit(f"reviewed runtime inventory is not healthy: {summary!r}")
 PY
 
 for mode in copy symlink; do

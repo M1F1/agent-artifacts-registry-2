@@ -1,0 +1,16 @@
+name: AART redacted usage report
+description: Share one voluntary, bounded AART session result with this registry.
+title: "AART usage report: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This report is voluntary. It must contain only AART's redacted allowlisted event; never add credentials, paths, logs, repository names, or personal identifiers.
+  - type: textarea
+    id: report
+    attributes:
+      label: Redacted usage event
+      description: AART prefilled this exact versioned JSON payload for your review.
+      render: json
+    validations:
+      required: true

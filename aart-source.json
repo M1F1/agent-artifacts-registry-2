@@ -1,1 +1,1 @@
-{"artifact_roots":["artifacts"],"collection_roots":["collections"],"display_name":"AART Community Skills Registry","protocol_version":1,"required_capabilities":[],"requires_aart":{"max_exclusive":"2.0.0","min_inclusive":"1.0.0-a1"},"schema_version":1,"source_id":"community-skills-registry"}
+{"artifact_roots":["artifacts"],"collection_roots":["collections"],"display_name":"AART Community Registry","protocol_version":1,"required_capabilities":[],"requires_aart":{"max_exclusive":"2.0.0","min_inclusive":"1.0.0-a1"},"schema_version":1,"source_id":"community-skills-registry"}

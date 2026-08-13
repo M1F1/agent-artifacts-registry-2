@@ -58,9 +58,10 @@ licenses. Their provenance records the exact upstream repository, release, resol
 content digest, and—for MCP starters—the reviewed container digest. The seven executable files in
 Superpowers preserve their upstream executable mode.
 
-The artifacts do not declare `requires_aart`: none of their payloads depends on an AART executable
-capability. The registry remains readable from AART `1.0.0`; CI deliberately compiles and tests it
-with released AART `1.3.1` without raising that minimum.
+The artifacts do not declare `requires_aart` individually: no payload depends on an AART executable
+capability. The registry itself declares `>= 2.0.0, < 3.0.0`, because its three MCP starters carry
+setup v2 recipes with a package-root `SETUP.md` — content no released `1.x` executable can validate.
+CI compiles and tests the registry with released AART `2.0.0`.
 
 Four artifacts with bundled executable helpers publish advisory runtime requirements: Bash and
 Node.js for `brainstorming`, Bash and Git for `subagent-driven-development`, Bash and npm for

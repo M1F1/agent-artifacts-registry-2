@@ -1,0 +1,1 @@
+{"description":"Atlassian Jira and Confluence access through the official remote MCP server.","name":"atlassian","server":{"args":["-y","mcp-remote","https://mcp.atlassian.com/v1/sse"],"command":"npx"}}

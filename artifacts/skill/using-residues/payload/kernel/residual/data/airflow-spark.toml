@@ -1,0 +1,172 @@
+name = "airflow-spark"
+extends = ["base-lenses"]
+
+# Batch data and ML platforms: orchestrated DAGs, distributed jobs, datasets
+# with contracts, models that decay.
+#
+# This file deliberately declares no `vocabulary`. The specificity gate measures
+# whether a stressor is grounded in *your* system, and it draws its terms from
+# the flows step 01 actually discovered. Listing "dag" or "dataset" here would
+# let "a DAG fails" pass as specific, and that sentence is true of every data
+# platform ever built. Put your real system, team and product names in a private
+# overlay profile under .residuality/profiles instead.
+
+[components]
+kinds = [
+  "dag",
+  "task_group",
+  "dataset",
+  "data_contract",
+  "feature_table",
+  "model_artifact",
+  "serving_endpoint",
+  "schedule",
+  "cluster_profile",
+  "storage_zone",
+  "warehouse_mart",
+]
+default_granularity = "task_group"
+
+[flows]
+sources = [
+  "DAG definitions and their task dependencies",
+  "dataset / asset declarations and outlets",
+  "Spark job read and write paths",
+  "warehouse table lineage",
+  "model training inputs and registered outputs",
+  "downstream consumers: dashboards, reverse ETL, APIs, notebooks",
+  "schedules and the upstream signals they wait on",
+]
+hint = """
+A flow is one body of information moving between two actors, where an actor can
+be a team, a system or a component. It is not a DAG step. Two tasks inside one
+DAG that hand each other a dataframe in memory are one flow, not two; a nightly
+extract that a finance analyst pulls into a spreadsheet is a flow even though no
+code in this repository knows about it.
+
+The flows that matter most are usually the ones crossing a team boundary, because
+that is where the contract is implicit.
+"""
+
+[actors]
+roles = [
+  "upstream data producer team",
+  "platform engineer on call",
+  "analyst consuming a mart",
+  "ML engineer owning a model",
+  "compliance officer",
+  "finance owner of the cloud bill",
+]
+
+[gates]
+# Data platforms blur the technical/business line -- an upstream schema change is
+# organisational, not infrastructural -- so the quota is looser here and the
+# markers name genuinely machine-room concerns only.
+technical_quota = 0.25
+technical_markers = [
+  "executor",
+  "out of memory",
+  "oom",
+  "shuffle",
+  "spill",
+  "driver crash",
+  "worker node",
+  "scheduler heartbeat",
+  "container",
+  "retry limit",
+  "disk full",
+  "cluster autoscal",
+]
+
+[[lens]]
+id = "upstream-contract"
+kind = "domain"
+provoke = """
+Which upstream team can change a schema, a semantic, or a guarantee without
+telling you? Pick one and describe the change they would consider routine.
+
+The interesting cases are not renames -- those break loudly. The interesting
+cases are the ones where the column still parses and now means something else:
+a unit changes, a nullable field starts being null, an enum gains a value, a
+currency is switched, a filter upstream starts excluding rows that used to
+arrive. Follow it to the report someone acts on.
+"""
+
+[[lens]]
+id = "temporal"
+kind = "domain"
+provoke = """
+Data arrives late, out of order, twice, or not at all. Pick one and describe the
+day it happens: what has already run, what has already been read downstream, and
+who has already made a decision on the partial answer.
+
+Then ask what a backfill means once that has happened. Recomputing is easy;
+un-sending is not.
+"""
+
+[[lens]]
+id = "label-and-decay"
+kind = "domain"
+provoke = """
+For any model here: where do the labels actually come from, how delayed are they,
+and who produces them? Describe a change in the labelling process, or in what the
+label means, and what the model does for the weeks before anyone notices.
+
+Include the case where the thing being predicted changes behaviour *because* the
+model is predicting it.
+"""
+
+[[lens]]
+id = "residency-retention"
+kind = "domain"
+provoke = """
+Some rows must not leave a jurisdiction. Some must be deleted on request. Some
+must be reproducible years later. Pick one obligation and trace it through the
+lineage: which datasets, features, model artifacts and backups would have to be
+found, changed or rebuilt, and who could prove it was done?
+"""
+
+[[lens]]
+id = "consumer-proliferation"
+kind = "domain"
+provoke = """
+Something here has more consumers than its owners know about: a table someone
+queries directly, an export that became load-bearing, a dashboard a director
+reads every morning, a notebook that quietly became a production job.
+
+Describe one, and what happens the day it is changed by someone acting entirely
+reasonably.
+"""
+
+[[lens]]
+id = "cost-and-quota"
+kind = "domain"
+provoke = """
+The bill arrives and it is wrong, or the quota runs out mid-run. Describe what
+gets cut, who decides, and which pipelines are quietly turned off or degraded --
+then describe what depended on the ones that were turned off.
+"""
+
+[[lens]]
+id = "scale-shape"
+kind = "domain"
+provoke = """
+The volume does not simply grow: it changes shape. One key becomes enormous while
+the rest stay small, a customer arrives who is bigger than all the others
+combined, an event type that was rare becomes the majority, history has to be
+reprocessed from the beginning.
+
+Describe the shape change and what stops working -- keeping in mind that the
+thing that breaks is rarely the thing that got bigger.
+"""
+
+[[lens]]
+id = "trust-and-correction"
+kind = "domain"
+provoke = """
+A number that was published turns out to be wrong. Describe how it was found,
+how far it had already travelled, and what the business has to do to correct it.
+
+Then describe what has to be true of this system for that correction to be
+possible at all.
+"""

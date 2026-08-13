@@ -1,0 +1,175 @@
+name = "base-lenses"
+
+# The context-independent shards of the random simulation. Every lens here is a
+# question about the reader's own system. None of them may ever become a list of
+# answers: shipped stressors would make every analysis in the company produce
+# the same rows, which is the generic-pattern trap the theory rejects
+# (residuality-theory §stressors).
+#
+# Technology profiles extend this file and add their own domain lenses.
+
+# --- PESTLE ---------------------------------------------------------------
+
+[[lens]]
+id = "pestle-political"
+kind = "pestle"
+provoke = """
+Who has power over this system that does not work for your company? A regulator,
+a government, a standards body, a dominant customer, a works council. Describe
+something one of them could decide that would leave the business operating under
+rules it was never built for. Name the specific decision and who makes it.
+"""
+
+[[lens]]
+id = "pestle-economic"
+kind = "pestle"
+provoke = """
+Money changes shape. A price the business depends on moves hard, a funding round
+does not close, a currency swings, a customer segment stops being able to pay,
+an input cost triples. Describe one such move and what the business looks like a
+quarter after it.
+"""
+
+[[lens]]
+id = "pestle-social"
+kind = "pestle"
+provoke = """
+People start behaving differently towards this business. Trust shifts, a habit
+changes, a story spreads, expectations rise, a new demographic arrives with
+different assumptions. Describe a change in behaviour that makes one of this
+system's assumptions about its users wrong.
+"""
+
+[[lens]]
+id = "pestle-technological"
+kind = "pestle"
+provoke = """
+Something outside your control changes technologically: a partner deprecates an
+interface, a device the business depends on disappears, a capability becomes
+cheap enough that customers now expect it. Not your own outages -- changes in the
+technological world this system sits in.
+"""
+
+[[lens]]
+id = "pestle-legal"
+kind = "pestle"
+provoke = """
+A rule arrives, or an old one is enforced for the first time. Data must live
+somewhere else, be deleted on request, be produced in court, be auditable for
+seven years, be explainable to the person it is about. Describe one and follow it
+through to what the business must now be able to prove.
+"""
+
+[[lens]]
+id = "pestle-environmental"
+kind = "pestle"
+provoke = """
+The physical world intrudes: energy, weather, geography, supply, disruption to a
+site or a route, an emissions obligation. Describe something physical that would
+change how this business operates and what it can promise.
+"""
+
+# --- Porter's five forces -------------------------------------------------
+
+[[lens]]
+id = "porter-new-entrants"
+kind = "porter"
+provoke = """
+Someone new starts doing what this business does, without its history. What do
+they do differently that customers immediately prefer, and what does this
+business have to become in response?
+"""
+
+[[lens]]
+id = "porter-suppliers"
+kind = "porter"
+provoke = """
+An organisation this business depends on changes the terms: the price, the
+contract, the interface, the guarantee, or whether they will deal with you at
+all. Pick a real dependency and describe the change and the aftermath.
+"""
+
+[[lens]]
+id = "porter-buyers"
+kind = "porter"
+provoke = """
+The customers gain leverage. They consolidate, they organise, one of them becomes
+large enough to dictate terms, or they demand something the business currently
+does not sell separately. Describe the demand and what has to bend.
+"""
+
+[[lens]]
+id = "porter-substitutes"
+kind = "porter"
+provoke = """
+Customers solve their problem a completely different way -- one that does not
+involve buying this kind of product at all. Describe the substitute and what is
+left of this business's role afterwards.
+"""
+
+[[lens]]
+id = "porter-rivalry"
+kind = "porter"
+provoke = """
+A competitor makes an aggressive move: price, coverage, bundling, an exclusive
+partnership, poaching the team, an acquisition. Describe the move and the
+position the business is pushed into.
+"""
+
+# --- Structural lenses ----------------------------------------------------
+
+[[lens]]
+id = "concept-collapse"
+kind = "concept"
+provoke = """
+Take the nouns this system is built on -- the ones that name components, tables
+and interfaces. Pick one and assume it is wrong: that it secretly covers two
+different things, or that a new kind of it is about to arrive that the current
+definition cannot hold.
+
+Do not extend the definition. Break it, and describe the world in which it broke.
+Nouns that look settled are exactly the ones that tear architectures apart
+(residuality-theory §edge-cases-and-abstractions).
+"""
+
+[[lens]]
+id = "abstraction-collapse"
+kind = "concept"
+provoke = """
+Find a process, sequence or workflow this system assumes. Describe a situation
+where the steps happen out of order, partially, twice, in parallel, or where
+someone stops halfway and never comes back. Then describe what the business does
+about the half-finished state.
+
+Treating these as edge cases is how architectures get patched to death
+(residuality-theory §edge-cases-and-abstractions). Treat it instead as evidence the sequence was never real.
+"""
+
+[[lens]]
+id = "entropy"
+kind = "entropy"
+provoke = """
+Random simulation needs randomness from outside your own head, because people
+generate patchy samples clustered on the likely (residuality-theory §random-simulation).
+
+Get a genuinely external artifact: fetch a recent news headline, a regulation, a
+market movement, or a public incident report using whatever context tool this
+harness offers. If you have no such tool, take a specific real-world event from
+the last year that has nothing to do with this business.
+
+Then force a connection: through what chain of consequences would that event
+reach this system? Follow the chain even if the first link seems absurd. State
+which artifact you used.
+"""
+
+[[lens]]
+id = "second-order"
+kind = "concept"
+provoke = """
+Assume the business has already survived something and adapted. Now stress the
+adapted version: what does the workaround itself make fragile? What does everyone
+now rely on that nobody chose deliberately?
+
+This is where attack-tree-shaped stress lives (residuality-theory §contagion-analysis): the damage
+that only appears after two things have happened in sequence.
+"""

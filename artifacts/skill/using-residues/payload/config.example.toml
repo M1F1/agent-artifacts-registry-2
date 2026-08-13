@@ -1,0 +1,69 @@
+# Copy to .residuality/config.toml and edit.
+#
+# Human-authored config is TOML; everything the kernel writes back is JSON,
+# because tomllib reads but cannot write and one hand-rolled serialiser is not
+# worth keeping a file format uniform.
+
+# Profiles are applied in order and later ones win. Put a public technology
+# profile first and your private workplace overlay second.
+profiles = ["airflow-spark"]
+# profiles = ["airflow-spark", "acme-internal"]
+
+
+# --------------------------------------------------------------------------
+# Capability bindings: the whole MCP story.
+# --------------------------------------------------------------------------
+# Steps ask for abstract capabilities. This table says which concrete tools
+# provide them in your harness. A new MCP server is a line here, never a code
+# change, and unbound capabilities are not an error -- the agent is told to use
+# whatever the harness offers and to record what it actually called.
+
+[capabilities]
+"context.code" = ["Read", "Grep", "Glob"]
+"context.docs" = []
+# "context.docs"      = ["mcp__confluence__search", "mcp__sharepoint__query"]
+# "context.lineage"   = ["mcp__datahub__lineage", "mcp__openmetadata__search"]
+# "context.incidents" = ["mcp__pagerduty__list_incidents"]
+# "context.tickets"   = ["mcp__jira__search"]
+# "context.market"    = ["WebSearch"]
+
+
+# --------------------------------------------------------------------------
+# Restart-loop runner
+# --------------------------------------------------------------------------
+
+[runner]
+# Command used by skills/residual-run-loop/scripts/loop.sh. The prompt arrives on stdin.
+cmd = "claude -p"
+prompt_file = ".residuality/unit.md"
+
+
+# --------------------------------------------------------------------------
+# Gate thresholds
+# --------------------------------------------------------------------------
+# These are the defaults; uncomment to override globally.
+
+[gates]
+# min_specificity = 1        # domain terms a stressor must name to count as grounded
+# duplicate_threshold = 0.68 # lexical similarity above which two rows are the same row
+# paraphrase_threshold = 0.62# similarity to the lens provocation that counts as restating it
+# technical_quota = 0.15     # share of stressors allowed to be infrastructure-flavoured
+# min_records_per_shard = 8
+# max_attempts = 3
+# claim_ttl_seconds = 1800   # after this, a claimed unit is assumed abandoned
+
+
+# --------------------------------------------------------------------------
+# Per-step overrides
+# --------------------------------------------------------------------------
+
+[step."03-stressors"]
+# How often context gets cleared. "lens" keeps one whole lens in one context,
+# which is usually right: the fourth stressor in a lens is better than the
+# first, and per-stressor units pay a cold start for every row.
+unit = "lens"
+
+[step."03-stressors".gates]
+# Data platforms blur the technical/business line, so the profile already
+# loosens this. Tighten it here if your lists are drifting into the machine room.
+# technical_quota = 0.25

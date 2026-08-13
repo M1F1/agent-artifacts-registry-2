@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# The kernel's tests plus every sibling skill's own.
+#
+#   bin/residual-test              # everything
+#   bin/residual-test 06-matrix    # one step's skill
+HERE=$(CDPATH= cd -L "$(dirname "$0")/.." && pwd -L)
+PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m residual test "$@"

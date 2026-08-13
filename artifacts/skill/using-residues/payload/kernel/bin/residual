@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# The kernel CLI, with nothing installed.
+#
+# Locates the package relative to itself, so it works from any working
+# directory and from wherever the skill was installed to. If you would rather
+# have `residual` on your PATH, `pip install -e` this directory instead --
+# same code, same zero dependencies.
+HERE=$(CDPATH= cd -L "$(dirname "$0")/.." && pwd -L)
+PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m residual "$@"

@@ -1,0 +1,105 @@
+name = "generic-service"
+extends = ["base-lenses"]
+
+# A request-serving system: services, stores, integrations, sessions. The
+# fallback profile when nothing more specific fits.
+#
+# Like every technology profile, it declares no `vocabulary` -- the specificity
+# gate draws its terms from the flows step 01 discovers, so that grounding is
+# measured against your system rather than against the genre.
+
+[components]
+kinds = [
+  "service",
+  "datastore",
+  "queue",
+  "integration",
+  "scheduled_job",
+  "gateway",
+  "identity_provider",
+  "cache",
+]
+default_granularity = "service"
+
+[flows]
+sources = [
+  "HTTP and RPC calls between services",
+  "queue publishes and subscriptions",
+  "database reads and writes that cross a component boundary",
+  "third-party integrations in both directions",
+  "scheduled jobs and what triggers them",
+  "anything a human sends or receives: files, exports, emails, support tickets",
+]
+hint = """
+A flow is one movement of information between two actors, where an actor may be a
+person, a team, a company or a component. Do not draw the request sequence --
+that is a process, and decomposing along process lines is the mistake Parnas
+warned about (residuality-theory §flow-analysis). Draw what moves, and between whom.
+"""
+
+[actors]
+roles = [
+  "end customer",
+  "support agent",
+  "operations engineer on call",
+  "finance or billing owner",
+  "partner integrating against the API",
+  "someone trying to abuse the system",
+]
+
+[gates]
+technical_quota = 0.15
+technical_markers = [
+  "server down",
+  "database down",
+  "out of memory",
+  "cpu",
+  "disk full",
+  "certificate expired",
+  "deployment failed",
+  "cache miss",
+  "connection pool",
+  "load balancer",
+]
+
+[[lens]]
+id = "identity-collapse"
+kind = "domain"
+provoke = """
+This system assumes it knows who someone is. Describe a situation where that
+assumption fails in a way the login flow does not cover: one person with several
+accounts, one account with several people, an organisation that wants to be a
+single customer, someone who has lost their means of identifying themselves at
+the worst possible moment.
+"""
+
+[[lens]]
+id = "money-shape"
+kind = "domain"
+provoke = """
+Describe a change in how money moves: who pays, when, in what currency, on whose
+behalf, with what proof, and what happens when it needs to be given back. Include
+the case where the business decides to charge for something it currently gives
+away, or the reverse.
+"""
+
+[[lens]]
+id = "integration-fragility"
+kind = "domain"
+provoke = """
+Pick a system on the other side of a boundary that this one depends on or serves.
+Describe it behaving in a way that is technically within its rights but not what
+was assumed: succeeding slowly, returning stale data, changing its meaning,
+retrying, going away for a planned week, or being replaced by a competitor's
+product after an acquisition.
+"""
+
+[[lens]]
+id = "adversarial"
+kind = "domain"
+provoke = """
+Someone wants to use this system against its purpose -- for fraud, for
+harassment, for scraping, for gaming an incentive, or simply to be difficult.
+Describe what they do, what they gain, and how the business first finds out.
+Assume they are patient and are not breaking in.
+"""

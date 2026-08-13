@@ -36,5 +36,5 @@ This starter targets `github.com`. GitHub Enterprise Server and Enterprise Cloud
 residency additionally require a reviewed `GITHUB_HOST`; do not put that host or a token directly
 into this public artifact.
 
-On Linux the MCP JSON remains installable, but setup protocol v1 has no Linux secret-store adapter.
+On Linux the MCP JSON remains installable, but setup v2 has no Linux secret-store adapter.
 Follow the same least-privilege guidance and use your platform's credential manager outside AART.

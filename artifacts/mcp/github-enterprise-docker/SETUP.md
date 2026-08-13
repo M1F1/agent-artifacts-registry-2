@@ -49,5 +49,5 @@ test -n "${GITHUB_ENTERPRISE_PERSONAL_ACCESS_TOKEN:-}"
 For Claude Code, restart Claude and run `/mcp`; the `github-enterprise` server should become ready.
 For Tabnine CLI, restart it and run `/mcp` for the same status check.
 
-On Linux the MCP JSON remains installable, but setup protocol v1 has no Linux secret-store adapter.
+On Linux the MCP JSON remains installable, but setup v2 has no Linux secret-store adapter.
 Use your platform credential manager outside AART and keep the token out of committed configuration.

@@ -32,6 +32,6 @@ test -n "${DATABASE_URI:-}"
 Restart the harness and inspect its MCP status. The installed server key is `postgres`, and the
 container command includes `--access-mode=restricted`.
 
-On Linux the MCP JSON remains installable, but setup protocol v1 has no Linux secret-store adapter.
+On Linux the MCP JSON remains installable, but setup v2 has no Linux secret-store adapter.
 Use your platform's credential manager outside AART and keep the connection URI out of committed
 configuration.
